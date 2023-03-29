@@ -1,3 +1,4 @@
+// Package set implements a [Set] type for Go.
 package set
 
 import (
