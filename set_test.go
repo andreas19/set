@@ -15,21 +15,30 @@ func TestNew(t *testing.T) {
 		{[]int{1}, map[int]struct{}{1: {}}},
 		{[]int{1, 2, 1}, map[int]struct{}{1: {}, 2: {}}},
 	}
-	for _, test := range tests {
+	for i, test := range tests {
 		s := New(test.args...)
 		if !reflect.DeepEqual(s.data, test.want) {
-			t.Errorf("got %v, want %v", s.data, test.want)
+			t.Errorf("%d: got %v, want %v", i, s.data, test.want)
 		}
 	}
 }
 
 func TestContains(t *testing.T) {
-	s := New(1)
-	if !s.Contains(1) {
-		t.Error("got false, want true")
+	var tests = []struct {
+		s    Set[int]
+		v    int
+		want bool
+	}{
+		{New[int](), 1, false},
+		{New(1), 1, true},
+		{New(2), 1, false},
+		{New(2, 3), 1, false},
+		{New(2, 3), 2, true},
 	}
-	if s.Contains(2) {
-		t.Error("got true, want false")
+	for i, test := range tests {
+		if got := test.s.Contains(test.v); got != test.want {
+			t.Errorf("%d: got %t, want %t", i, got, test.want)
+		}
 	}
 }
 
@@ -86,63 +95,98 @@ func TestCardinality(t *testing.T) {
 }
 
 func TestUnion(t *testing.T) {
-	s1 := New(1, 2)
-	s2 := New(2, 3)
-	want := map[int]struct{}{1: {}, 2: {}, 3: {}}
-	union := s1.Union(s2)
-	if !reflect.DeepEqual(union.data, want) {
-		t.Errorf("got %v, want %v", union.data, want)
+	var tests = []struct {
+		s1, s2 Set[int]
+		want   map[int]struct{}
+	}{
+		{New[int](), New[int](), map[int]struct{}{}},
+		{New[int](), New(1, 2), map[int]struct{}{1: {}, 2: {}}},
+		{New(1, 2), New(2, 3), map[int]struct{}{1: {}, 2: {}, 3: {}}},
+		{New(1, 2), New(3, 4), map[int]struct{}{1: {}, 2: {}, 3: {}, 4: {}}},
+		{New(1, 2), New(1, 2), map[int]struct{}{1: {}, 2: {}}},
+	}
+	for i, test := range tests {
+		got1 := test.s1.Union(test.s2).data
+		got2 := test.s2.Union(test.s1).data
+		if !(reflect.DeepEqual(got1, test.want) && reflect.DeepEqual(got2, test.want)) {
+			t.Errorf("%d: got %#v and %#v, want %#v", i, got1, got2, test.want)
+		}
 	}
 }
 
 func TestIntersection(t *testing.T) {
-	s1 := New(1, 2)
-	s2 := New(2, 3)
-	want := map[int]struct{}{2: {}}
-	intersection := s1.Intersection(s2)
-	if !reflect.DeepEqual(intersection.data, want) {
-		t.Errorf("got %v, want %v", intersection.data, want)
+	var tests = []struct {
+		s1, s2 Set[int]
+		want   map[int]struct{}
+	}{
+		{New[int](), New[int](), map[int]struct{}{}},
+		{New[int](), New(1, 2), map[int]struct{}{}},
+		{New(1, 2), New(2, 3), map[int]struct{}{2: {}}},
+		{New(1, 2), New(3, 4), map[int]struct{}{}},
+		{New(1, 2), New(1, 2), map[int]struct{}{1: {}, 2: {}}},
+	}
+	for i, test := range tests {
+		got1 := test.s1.Intersection(test.s2).data
+		got2 := test.s2.Intersection(test.s1).data
+		if !(reflect.DeepEqual(got1, test.want) && reflect.DeepEqual(got2, test.want)) {
+			t.Errorf("%d: got %#v and %#v, want %#v", i, got1, got2, test.want)
+		}
 	}
 }
 
 func TestDifference(t *testing.T) {
-	s1 := New(1, 2)
-	s2 := New(2, 3)
-	want := map[int]struct{}{1: {}}
-	diff := s1.Difference(s2)
-	if !reflect.DeepEqual(diff.data, want) {
-		t.Errorf("got %v, want %v", diff.data, want)
+	var tests = []struct {
+		s1, s2 Set[int]
+		want   map[int]struct{}
+	}{
+		{New[int](), New[int](), map[int]struct{}{}},
+		{New[int](), New(1, 2), map[int]struct{}{}},
+		{New(1, 2), New(2, 3), map[int]struct{}{1: {}}},
+		{New(1, 2), New(3, 4), map[int]struct{}{1: {}, 2: {}}},
+		{New(1, 2), New(1, 2), map[int]struct{}{}},
+	}
+	for i, test := range tests {
+		if got := test.s1.Difference(test.s2); !reflect.DeepEqual(got.data, test.want) {
+			t.Errorf("%d: got %#v, want %#v", i, got, test.want)
+		}
 	}
 }
 
 func TestIsSubset(t *testing.T) {
-	s := New(1, 2, 3)
-	s1 := New(1, 2)
-	s2 := New(3, 4)
-	if !s1.IsSubset(s) {
-		t.Error("got false, want true")
+	var tests = []struct {
+		s1, s2 Set[int]
+		want   bool
+	}{
+		{New[int](), New[int](), true},
+		{New[int](), New(1), true},
+		{New(1), New(1, 2), true},
+		{New(1, 2), New(1, 2), true},
+		{New(1, 2), New(1), false},
+		{New(1), New[int](), false},
 	}
-	if s2.IsSubset(s) {
-		t.Error("got true, want false")
+	for i, test := range tests {
+		if got := test.s1.IsSubset(test.s2); got != test.want {
+			t.Errorf("%d: got %t, want %t", i, got, test.want)
+		}
 	}
 }
 
 func TestEqual(t *testing.T) {
-	s1 := New(1, 2)
-	s2 := New(1, 2)
-	s3 := New(3, 4)
-	s4 := New(0)
-	if !(s1.Equal(s2) && s2.Equal(s1)) {
-		t.Error("got false, want true")
+	var tests = []struct {
+		s1, s2 Set[int]
+		want   bool
+	}{
+		{New[int](), New[int](), true},
+		{New[int](), New(1), false},
+		{New(1), New(1, 2), false},
+		{New(1, 2), New(1, 2), true},
 	}
-	if !s1.Equal(s2) {
-		t.Error("got false, want true")
-	}
-	if s1.Equal(s3) {
-		t.Error("got true, want false")
-	}
-	if s3.Equal(s4) {
-		t.Error("got true, want false")
+	for i, test := range tests {
+		got1 := test.s1.Equal(test.s2)
+		got2 := test.s2.Equal(test.s1)
+		if got1 != test.want || got2 != test.want {
+			t.Errorf("%d: got %t and %t, want %t", i, got1, got2, test.want)
+		}
 	}
 }
 
@@ -163,12 +207,12 @@ func TestElements(t *testing.T) {
 		{[]int{1}, []int{1}},
 		{[]int{2, 1, 1}, []int{1, 2}},
 	}
-	for _, test := range tests {
+	for i, test := range tests {
 		s := New(test.args...)
 		sl := s.Elements()
 		sort.Slice(sl, func(i, j int) bool { return sl[i] < sl[j] })
 		if !reflect.DeepEqual(sl, test.want) {
-			t.Errorf("got %v, want %v", s.Elements(), test.want)
+			t.Errorf("%d: got %v, want %v", i, s.Elements(), test.want)
 		}
 	}
 }
