@@ -171,6 +171,25 @@ func TestIsSubset(t *testing.T) {
 	}
 }
 
+func TestIsProperSubset(t *testing.T) {
+	var tests = []struct {
+		s1, s2 Set[int]
+		want   bool
+	}{
+		{New[int](), New[int](), false},
+		{New[int](), New(1), true},
+		{New(1), New(1, 2), true},
+		{New(1, 2), New(1, 2), false},
+		{New(1, 2), New(1), false},
+		{New(1), New[int](), false},
+	}
+	for i, test := range tests {
+		if got := test.s1.IsProperSubset(test.s2); got != test.want {
+			t.Errorf("%d: got %t, want %t", i, got, test.want)
+		}
+	}
+}
+
 func TestEqual(t *testing.T) {
 	var tests = []struct {
 		s1, s2 Set[int]

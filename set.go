@@ -100,6 +100,19 @@ func (s Set[T]) IsSubset(s2 Set[T]) bool {
 	return true
 }
 
+// IsProperSubset returns true if s is a proper subset of s2.
+func (s Set[T]) IsProperSubset(s2 Set[T]) bool {
+	if len(s.data) >= len(s2.data) {
+		return false
+	}
+	for elem := range s.data {
+		if _, ok := s2.data[elem]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
 // Equal returns true if s and s2 contain the same elements.
 func (s Set[T]) Equal(s2 Set[T]) bool {
 	if len(s.data) != len(s2.data) {
