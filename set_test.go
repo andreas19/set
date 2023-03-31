@@ -152,6 +152,26 @@ func TestDifference(t *testing.T) {
 	}
 }
 
+func TestSymDifference(t *testing.T) {
+	var tests = []struct {
+		s1, s2 Set[int]
+		want   map[int]struct{}
+	}{
+		{New[int](), New[int](), map[int]struct{}{}},
+		{New[int](), New(1, 2), map[int]struct{}{1: {}, 2: {}}},
+		{New(1, 2), New(2, 3), map[int]struct{}{1: {}, 3: {}}},
+		{New(1, 2), New(3, 4), map[int]struct{}{1: {}, 2: {}, 3: {}, 4: {}}},
+		{New(1, 2), New(1, 2), map[int]struct{}{}},
+	}
+	for i, test := range tests {
+		got1 := test.s1.SymDifference(test.s2).data
+		got2 := test.s2.SymDifference(test.s1).data
+		if !(reflect.DeepEqual(got1, test.want) && reflect.DeepEqual(got2, test.want)) {
+			t.Errorf("%d: got %#v and %#v, want %#v", i, got1, got2, test.want)
+		}
+	}
+}
+
 func TestIsSubset(t *testing.T) {
 	var tests = []struct {
 		s1, s2 Set[int]

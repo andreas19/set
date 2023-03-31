@@ -90,6 +90,22 @@ func (s Set[T]) Difference(s2 Set[T]) Set[T] {
 	return Set[T]{data: m}
 }
 
+// SymDifference returns a new Set which is the symmetric difference of s and s2.
+func (s Set[T]) SymDifference(s2 Set[T]) Set[T] {
+	m := make(map[T]struct{})
+	for elem := range s.data {
+		if _, ok := s2.data[elem]; !ok {
+			m[elem] = struct{}{}
+		}
+	}
+	for elem := range s2.data {
+		if _, ok := s.data[elem]; !ok {
+			m[elem] = struct{}{}
+		}
+	}
+	return Set[T]{data: m}
+}
+
 // IsSubset returns true if s is a subset of s2.
 func (s Set[T]) IsSubset(s2 Set[T]) bool {
 	for elem := range s.data {
