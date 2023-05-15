@@ -72,7 +72,7 @@ func TestRemove(t *testing.T) {
 	}
 }
 
-func TestIsempty(t *testing.T) {
+func TestIsEmpty(t *testing.T) {
 	s := NewMapSet[int]()
 	if !s.IsEmpty() {
 		t.Error("got false, want true")
@@ -108,6 +108,28 @@ func TestUnion(t *testing.T) {
 	for i, test := range tests {
 		got1 := test.s1.Union(test.s2).(*MapSet[int]).data
 		got2 := test.s2.Union(test.s1).(*MapSet[int]).data
+		if !(reflect.DeepEqual(got1, test.want) && reflect.DeepEqual(got2, test.want)) {
+			t.Errorf("%d: got %#v and %#v, want %#v", i, got1, got2, test.want)
+		}
+	}
+}
+
+func TestUnion2(t *testing.T) {
+	var tests = []struct {
+		s1, s2 Set[int]
+		want   []int
+	}{
+		{NewMapSet[int](), NewTreeSet[int](), []int{}},
+		{NewMapSet[int](), NewTreeSet(1, 2), []int{1, 2}},
+		{NewMapSet(1, 2), NewTreeSet(2, 3), []int{1, 2, 3}},
+		{NewMapSet(1, 2), NewTreeSet(3, 4), []int{1, 2, 3, 4}},
+		{NewMapSet(1, 2), NewTreeSet(1, 2), []int{1, 2}},
+	}
+	for i, test := range tests {
+		got1 := test.s1.Union(test.s2).Elements()
+		sort.Ints(got1)
+		got2 := test.s2.Union(test.s1).Elements()
+		sort.Ints(got2)
 		if !(reflect.DeepEqual(got1, test.want) && reflect.DeepEqual(got2, test.want)) {
 			t.Errorf("%d: got %#v and %#v, want %#v", i, got1, got2, test.want)
 		}
@@ -166,6 +188,27 @@ func TestSymDifference(t *testing.T) {
 	for i, test := range tests {
 		got1 := test.s1.SymDifference(test.s2).(*MapSet[int]).data
 		got2 := test.s2.SymDifference(test.s1).(*MapSet[int]).data
+		if !(reflect.DeepEqual(got1, test.want) && reflect.DeepEqual(got2, test.want)) {
+			t.Errorf("%d: got %#v and %#v, want %#v", i, got1, got2, test.want)
+		}
+	}
+}
+
+func TestSymDifference2(t *testing.T) {
+	var tests = []struct {
+		s1, s2 Set[int]
+		want   []int
+	}{
+		{NewMapSet[int](), NewTreeSet[int](), []int{}},
+		{NewMapSet[int](), NewTreeSet(1, 2), []int{1, 2}},
+		{NewMapSet(1, 2), NewTreeSet(2, 3), []int{1, 3}},
+		{NewMapSet(1, 2), NewTreeSet(3, 4), []int{1, 2, 3, 4}},
+		{NewMapSet(1, 2), NewTreeSet(1, 2), []int{}},
+	}
+	for i, test := range tests {
+		got1 := test.s1.SymDifference(test.s2).Elements()
+		sort.Ints(got1)
+		got2 := test.s2.SymDifference(test.s1).Elements()
 		if !(reflect.DeepEqual(got1, test.want) && reflect.DeepEqual(got2, test.want)) {
 			t.Errorf("%d: got %#v and %#v, want %#v", i, got1, got2, test.want)
 		}
@@ -253,7 +296,7 @@ func TestElements(t *testing.T) {
 	for i, test := range tests {
 		s := NewMapSet(test.args...)
 		sl := s.Elements()
-		sort.Slice(sl, func(i, j int) bool { return sl[i] < sl[j] })
+		sort.Ints(sl)
 		if !reflect.DeepEqual(sl, test.want) {
 			t.Errorf("%d: got %v, want %v", i, s.Elements(), test.want)
 		}
@@ -261,9 +304,10 @@ func TestElements(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	s := NewMapSet(1, 2, 3)
-	want := "Set{1, 2, 3}"
-	if s.String() != want {
-		t.Errorf("got %q, want %q", s.String(), want)
+	s := NewMapSet(1, 2)
+	want1 := "MapSet{1, 2}"
+	want2 := "MapSet{2, 1}"
+	if got := s.String(); got != want1 && got != want2 {
+		t.Errorf("got %q, want %q or %q", got, want1, want2)
 	}
 }
