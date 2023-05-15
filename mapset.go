@@ -5,12 +5,12 @@ import (
 	"strings"
 )
 
-// MapSet type.
+// MapSet type that implements the [Set] interface.
 type MapSet[T comparable] struct {
 	data map[T]struct{}
 }
 
-// New returns a new MapSet with the given elements.
+// NewMapSet returns a new MapSet with the given elements.
 func NewMapSet[T comparable](elems ...T) *MapSet[T] {
 	data := make(map[T]struct{})
 	for _, v := range elems {
