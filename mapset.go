@@ -6,6 +6,7 @@ import (
 )
 
 // MapSet type that implements the [Set] interface.
+// It uses a Go map to store the elements.
 type MapSet[T comparable] struct {
 	data map[T]struct{}
 }
@@ -61,7 +62,6 @@ func (s *MapSet[T]) Union(s2 Set[T]) Set[T] {
 	for elem := range s.data {
 		m[elem] = struct{}{}
 	}
-
 	if x, ok := s2.(*MapSet[T]); ok {
 		for elem := range x.data {
 			m[elem] = struct{}{}
@@ -173,5 +173,5 @@ func (s *MapSet[T]) String() string {
 	for elem := range s.data {
 		sl = append(sl, fmt.Sprintf("%v", elem))
 	}
-	return fmt.Sprintf("Set{%s}", strings.Join(sl, ", "))
+	return fmt.Sprintf("MapSet{%s}", strings.Join(sl, ", "))
 }
