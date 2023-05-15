@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestNew(t *testing.T) {
+func TestNewMapSet(t *testing.T) {
 	var tests = []struct {
 		args []int
 		want map[int]struct{}
@@ -16,7 +16,7 @@ func TestNew(t *testing.T) {
 		{[]int{1, 2, 1}, map[int]struct{}{1: {}, 2: {}}},
 	}
 	for i, test := range tests {
-		s := New(test.args...)
+		s := NewMapSet(test.args...)
 		if !reflect.DeepEqual(s.data, test.want) {
 			t.Errorf("%d: got %v, want %v", i, s.data, test.want)
 		}
@@ -25,15 +25,15 @@ func TestNew(t *testing.T) {
 
 func TestContains(t *testing.T) {
 	var tests = []struct {
-		s    Set[int]
+		s    *MapSet[int]
 		v    int
 		want bool
 	}{
-		{New[int](), 1, false},
-		{New(1), 1, true},
-		{New(2), 1, false},
-		{New(2, 3), 1, false},
-		{New(2, 3), 2, true},
+		{NewMapSet[int](), 1, false},
+		{NewMapSet(1), 1, true},
+		{NewMapSet(2), 1, false},
+		{NewMapSet(2, 3), 1, false},
+		{NewMapSet(2, 3), 2, true},
 	}
 	for i, test := range tests {
 		if got := test.s.Contains(test.v); got != test.want {
@@ -43,7 +43,7 @@ func TestContains(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	s := New(1)
+	s := NewMapSet(1)
 	if s.Add(1) {
 		t.Error("got true, want false")
 	}
@@ -57,7 +57,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	s := New(1)
+	s := NewMapSet(1)
 	if s.Remove(2) {
 		t.Error("got true, want false")
 	}
@@ -73,7 +73,7 @@ func TestRemove(t *testing.T) {
 }
 
 func TestIsempty(t *testing.T) {
-	s := New[int]()
+	s := NewMapSet[int]()
 	if !s.IsEmpty() {
 		t.Error("got false, want true")
 	}
@@ -84,7 +84,7 @@ func TestIsempty(t *testing.T) {
 }
 
 func TestCardinality(t *testing.T) {
-	s := New[int]()
+	s := NewMapSet[int]()
 	if n := s.Cardinality(); n != 0 {
 		t.Errorf("got %d, want 0", n)
 	}
@@ -96,14 +96,14 @@ func TestCardinality(t *testing.T) {
 
 func TestUnion(t *testing.T) {
 	var tests = []struct {
-		s1, s2 Set[int]
+		s1, s2 *MapSet[int]
 		want   map[int]struct{}
 	}{
-		{New[int](), New[int](), map[int]struct{}{}},
-		{New[int](), New(1, 2), map[int]struct{}{1: {}, 2: {}}},
-		{New(1, 2), New(2, 3), map[int]struct{}{1: {}, 2: {}, 3: {}}},
-		{New(1, 2), New(3, 4), map[int]struct{}{1: {}, 2: {}, 3: {}, 4: {}}},
-		{New(1, 2), New(1, 2), map[int]struct{}{1: {}, 2: {}}},
+		{NewMapSet[int](), NewMapSet[int](), map[int]struct{}{}},
+		{NewMapSet[int](), NewMapSet(1, 2), map[int]struct{}{1: {}, 2: {}}},
+		{NewMapSet(1, 2), NewMapSet(2, 3), map[int]struct{}{1: {}, 2: {}, 3: {}}},
+		{NewMapSet(1, 2), NewMapSet(3, 4), map[int]struct{}{1: {}, 2: {}, 3: {}, 4: {}}},
+		{NewMapSet(1, 2), NewMapSet(1, 2), map[int]struct{}{1: {}, 2: {}}},
 	}
 	for i, test := range tests {
 		got1 := test.s1.Union(test.s2).data
@@ -116,14 +116,14 @@ func TestUnion(t *testing.T) {
 
 func TestIntersection(t *testing.T) {
 	var tests = []struct {
-		s1, s2 Set[int]
+		s1, s2 *MapSet[int]
 		want   map[int]struct{}
 	}{
-		{New[int](), New[int](), map[int]struct{}{}},
-		{New[int](), New(1, 2), map[int]struct{}{}},
-		{New(1, 2), New(2, 3), map[int]struct{}{2: {}}},
-		{New(1, 2), New(3, 4), map[int]struct{}{}},
-		{New(1, 2), New(1, 2), map[int]struct{}{1: {}, 2: {}}},
+		{NewMapSet[int](), NewMapSet[int](), map[int]struct{}{}},
+		{NewMapSet[int](), NewMapSet(1, 2), map[int]struct{}{}},
+		{NewMapSet(1, 2), NewMapSet(2, 3), map[int]struct{}{2: {}}},
+		{NewMapSet(1, 2), NewMapSet(3, 4), map[int]struct{}{}},
+		{NewMapSet(1, 2), NewMapSet(1, 2), map[int]struct{}{1: {}, 2: {}}},
 	}
 	for i, test := range tests {
 		got1 := test.s1.Intersection(test.s2).data
@@ -136,14 +136,14 @@ func TestIntersection(t *testing.T) {
 
 func TestDifference(t *testing.T) {
 	var tests = []struct {
-		s1, s2 Set[int]
+		s1, s2 *MapSet[int]
 		want   map[int]struct{}
 	}{
-		{New[int](), New[int](), map[int]struct{}{}},
-		{New[int](), New(1, 2), map[int]struct{}{}},
-		{New(1, 2), New(2, 3), map[int]struct{}{1: {}}},
-		{New(1, 2), New(3, 4), map[int]struct{}{1: {}, 2: {}}},
-		{New(1, 2), New(1, 2), map[int]struct{}{}},
+		{NewMapSet[int](), NewMapSet[int](), map[int]struct{}{}},
+		{NewMapSet[int](), NewMapSet(1, 2), map[int]struct{}{}},
+		{NewMapSet(1, 2), NewMapSet(2, 3), map[int]struct{}{1: {}}},
+		{NewMapSet(1, 2), NewMapSet(3, 4), map[int]struct{}{1: {}, 2: {}}},
+		{NewMapSet(1, 2), NewMapSet(1, 2), map[int]struct{}{}},
 	}
 	for i, test := range tests {
 		if got := test.s1.Difference(test.s2); !reflect.DeepEqual(got.data, test.want) {
@@ -154,14 +154,14 @@ func TestDifference(t *testing.T) {
 
 func TestSymDifference(t *testing.T) {
 	var tests = []struct {
-		s1, s2 Set[int]
+		s1, s2 *MapSet[int]
 		want   map[int]struct{}
 	}{
-		{New[int](), New[int](), map[int]struct{}{}},
-		{New[int](), New(1, 2), map[int]struct{}{1: {}, 2: {}}},
-		{New(1, 2), New(2, 3), map[int]struct{}{1: {}, 3: {}}},
-		{New(1, 2), New(3, 4), map[int]struct{}{1: {}, 2: {}, 3: {}, 4: {}}},
-		{New(1, 2), New(1, 2), map[int]struct{}{}},
+		{NewMapSet[int](), NewMapSet[int](), map[int]struct{}{}},
+		{NewMapSet[int](), NewMapSet(1, 2), map[int]struct{}{1: {}, 2: {}}},
+		{NewMapSet(1, 2), NewMapSet(2, 3), map[int]struct{}{1: {}, 3: {}}},
+		{NewMapSet(1, 2), NewMapSet(3, 4), map[int]struct{}{1: {}, 2: {}, 3: {}, 4: {}}},
+		{NewMapSet(1, 2), NewMapSet(1, 2), map[int]struct{}{}},
 	}
 	for i, test := range tests {
 		got1 := test.s1.SymDifference(test.s2).data
@@ -174,15 +174,17 @@ func TestSymDifference(t *testing.T) {
 
 func TestIsSubset(t *testing.T) {
 	var tests = []struct {
-		s1, s2 Set[int]
+		s1, s2 *MapSet[int]
 		want   bool
 	}{
-		{New[int](), New[int](), true},
-		{New[int](), New(1), true},
-		{New(1), New(1, 2), true},
-		{New(1, 2), New(1, 2), true},
-		{New(1, 2), New(1), false},
-		{New(1), New[int](), false},
+		{NewMapSet[int](), NewMapSet[int](), true},
+		{NewMapSet[int](), NewMapSet(1), true},
+		{NewMapSet(1), NewMapSet(1, 2), true},
+		{NewMapSet(1, 2), NewMapSet(1, 2), true},
+		{NewMapSet(1, 2), NewMapSet(1), false},
+		{NewMapSet(1), NewMapSet[int](), false},
+		{NewMapSet(1, 2), NewMapSet(1, 3, 4), false},
+		{NewMapSet(1, 2), NewMapSet(1, 2, 4), true},
 	}
 	for i, test := range tests {
 		if got := test.s1.IsSubset(test.s2); got != test.want {
@@ -193,15 +195,17 @@ func TestIsSubset(t *testing.T) {
 
 func TestIsProperSubset(t *testing.T) {
 	var tests = []struct {
-		s1, s2 Set[int]
+		s1, s2 *MapSet[int]
 		want   bool
 	}{
-		{New[int](), New[int](), false},
-		{New[int](), New(1), true},
-		{New(1), New(1, 2), true},
-		{New(1, 2), New(1, 2), false},
-		{New(1, 2), New(1), false},
-		{New(1), New[int](), false},
+		{NewMapSet[int](), NewMapSet[int](), false},
+		{NewMapSet[int](), NewMapSet(1), true},
+		{NewMapSet(1), NewMapSet(1, 2), true},
+		{NewMapSet(1, 2), NewMapSet(1, 2), false},
+		{NewMapSet(1, 2), NewMapSet(1), false},
+		{NewMapSet(1), NewMapSet[int](), false},
+		{NewMapSet(1, 2), NewMapSet(1, 3, 4), false},
+		{NewMapSet(1, 2), NewMapSet(1, 2, 4), true},
 	}
 	for i, test := range tests {
 		if got := test.s1.IsProperSubset(test.s2); got != test.want {
@@ -212,13 +216,13 @@ func TestIsProperSubset(t *testing.T) {
 
 func TestEqual(t *testing.T) {
 	var tests = []struct {
-		s1, s2 Set[int]
+		s1, s2 *MapSet[int]
 		want   bool
 	}{
-		{New[int](), New[int](), true},
-		{New[int](), New(1), false},
-		{New(1), New(1, 2), false},
-		{New(1, 2), New(1, 2), true},
+		{NewMapSet[int](), NewMapSet[int](), true},
+		{NewMapSet[int](), NewMapSet(1), false},
+		{NewMapSet(1), NewMapSet(1, 2), false},
+		{NewMapSet(1, 2), NewMapSet(1, 2), true},
 	}
 	for i, test := range tests {
 		got1 := test.s1.Equal(test.s2)
@@ -230,7 +234,7 @@ func TestEqual(t *testing.T) {
 }
 
 func TestClone(t *testing.T) {
-	s := New(1, 2, 3)
+	s := NewMapSet(1, 2, 3)
 	clone := s.Clone()
 	if !reflect.DeepEqual(s.data, clone.data) {
 		t.Errorf("got %v, want %v", clone.data, s.data)
@@ -247,7 +251,7 @@ func TestElements(t *testing.T) {
 		{[]int{2, 1, 1}, []int{1, 2}},
 	}
 	for i, test := range tests {
-		s := New(test.args...)
+		s := NewMapSet(test.args...)
 		sl := s.Elements()
 		sort.Slice(sl, func(i, j int) bool { return sl[i] < sl[j] })
 		if !reflect.DeepEqual(sl, test.want) {
@@ -257,7 +261,7 @@ func TestElements(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	s := New(1)
+	s := NewMapSet(1)
 	want := "Set{1}"
 	if s.String() != want {
 		t.Errorf("got %q, want %q", s.String(), want)
