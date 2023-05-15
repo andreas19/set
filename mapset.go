@@ -19,7 +19,7 @@ func NewMapSet[T comparable](elems ...T) *MapSet[T] {
 	return &MapSet[T]{data: data}
 }
 
-// Contains returns true if the element is in the Set.
+// Contains reports whether the element is in the Set.
 func (s *MapSet[T]) Contains(elem T) bool {
 	_, ok := s.data[elem]
 	return ok
@@ -56,22 +56,29 @@ func (s *MapSet[T]) Cardinality() int {
 }
 
 // Union returns a new Set which is the union of s and s2.
-func (s *MapSet[T]) Union(s2 *MapSet[T]) *MapSet[T] {
+func (s *MapSet[T]) Union(s2 Set[T]) Set[T] {
 	m := make(map[T]struct{})
 	for elem := range s.data {
 		m[elem] = struct{}{}
 	}
-	for elem := range s2.data {
-		m[elem] = struct{}{}
+
+	if x, ok := s2.(*MapSet[T]); ok {
+		for elem := range x.data {
+			m[elem] = struct{}{}
+		}
+	} else {
+		for _, elem := range s2.Elements() {
+			m[elem] = struct{}{}
+		}
 	}
 	return &MapSet[T]{data: m}
 }
 
 // Intersection returns a new Set which is the intersection of s and s2.
-func (s *MapSet[T]) Intersection(s2 *MapSet[T]) *MapSet[T] {
+func (s *MapSet[T]) Intersection(s2 Set[T]) Set[T] {
 	m := make(map[T]struct{})
 	for elem := range s.data {
-		if _, ok := s2.data[elem]; ok {
+		if s2.Contains(elem) {
 			m[elem] = struct{}{}
 		}
 	}
@@ -79,10 +86,10 @@ func (s *MapSet[T]) Intersection(s2 *MapSet[T]) *MapSet[T] {
 }
 
 // Difference returns a new Set which is the set difference of s and s2.
-func (s *MapSet[T]) Difference(s2 *MapSet[T]) *MapSet[T] {
+func (s *MapSet[T]) Difference(s2 Set[T]) Set[T] {
 	m := make(map[T]struct{})
 	for elem := range s.data {
-		if _, ok := s2.data[elem]; !ok {
+		if !s2.Contains(elem) {
 			m[elem] = struct{}{}
 		}
 	}
@@ -90,25 +97,36 @@ func (s *MapSet[T]) Difference(s2 *MapSet[T]) *MapSet[T] {
 }
 
 // SymDifference returns a new Set which is the symmetric difference of s and s2.
-func (s *MapSet[T]) SymDifference(s2 *MapSet[T]) *MapSet[T] {
+func (s *MapSet[T]) SymDifference(s2 Set[T]) Set[T] {
 	m := make(map[T]struct{})
 	for elem := range s.data {
-		if _, ok := s2.data[elem]; !ok {
+		if !s2.Contains(elem) {
 			m[elem] = struct{}{}
 		}
 	}
-	for elem := range s2.data {
-		if _, ok := s.data[elem]; !ok {
-			m[elem] = struct{}{}
+	if x, ok := s2.(*MapSet[T]); ok {
+		for elem := range x.data {
+			if _, ok := s.data[elem]; !ok {
+				m[elem] = struct{}{}
+			}
+		}
+	} else {
+		for _, elem := range s2.Elements() {
+			if _, ok := s.data[elem]; !ok {
+				m[elem] = struct{}{}
+			}
 		}
 	}
 	return &MapSet[T]{data: m}
 }
 
 // IsSubset returns true if s is a subset of s2.
-func (s *MapSet[T]) IsSubset(s2 *MapSet[T]) bool {
+func (s *MapSet[T]) IsSubset(s2 Set[T]) bool {
+	if len(s.data) > s2.Cardinality() {
+		return false
+	}
 	for elem := range s.data {
-		if _, ok := s2.data[elem]; !ok {
+		if !s2.Contains(elem) {
 			return false
 		}
 	}
@@ -116,28 +134,23 @@ func (s *MapSet[T]) IsSubset(s2 *MapSet[T]) bool {
 }
 
 // IsProperSubset returns true if s is a proper subset of s2.
-func (s *MapSet[T]) IsProperSubset(s2 *MapSet[T]) bool {
-	if len(s.data) >= len(s2.data) {
+func (s *MapSet[T]) IsProperSubset(s2 Set[T]) bool {
+	if len(s.data) >= s2.Cardinality() {
 		return false
 	}
-	for elem := range s.data {
-		if _, ok := s2.data[elem]; !ok {
-			return false
-		}
-	}
-	return true
+	return s.IsSubset(s2)
 }
 
 // Equal returns true if s and s2 contain the same elements.
-func (s *MapSet[T]) Equal(s2 *MapSet[T]) bool {
-	if len(s.data) != len(s2.data) {
+func (s *MapSet[T]) Equal(s2 Set[T]) bool {
+	if len(s.data) != s2.Cardinality() {
 		return false
 	}
 	return s.IsSubset(s2)
 }
 
 // Clone clones the Set.
-func (s *MapSet[T]) Clone() *MapSet[T] {
+func (s *MapSet[T]) Clone() Set[T] {
 	m := make(map[T]struct{})
 	for elem := range s.data {
 		m[elem] = struct{}{}
@@ -156,9 +169,9 @@ func (s *MapSet[T]) Elements() []T {
 
 // String returns a string representation of the Set.
 func (s *MapSet[T]) String() string {
-	sl := make([]string, len(s.data))
-	for i, elem := range s.Elements() {
-		sl[i] = fmt.Sprintf("%v", elem)
+	sl := make([]string, 0, len(s.data))
+	for elem := range s.data {
+		sl = append(sl, fmt.Sprintf("%v", elem))
 	}
 	return fmt.Sprintf("Set{%s}", strings.Join(sl, ", "))
 }

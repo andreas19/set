@@ -1,165 +1,51 @@
-// Package set implements a [Set] type for Go.
+// Package set implements [Set] types for Go.
 package set
 
-import (
-	"fmt"
-	"strings"
-)
+type Set[T any] interface {
+	// Contains reports whether the element is in the Set.
+	Contains(elem T) bool
 
-// Set type.
-type Set[T comparable] struct {
-	data map[T]struct{}
-}
+	// Add adds an element to the Set.
+	// Returns true if it was added, false if it already was in the set.
+	Add(elem T) bool
 
-// New returns a new Set with the given elements.
-func New[T comparable](elems ...T) Set[T] {
-	data := make(map[T]struct{})
-	for _, elem := range elems {
-		data[elem] = struct{}{}
-	}
-	return Set[T]{data: data}
-}
+	// Remove removes an element from the Set.
+	// Returns true if it was in the set, false otherwise.
+	Remove(elem T) bool
 
-// Contains returns true if elem is in the Set.
-func (s Set[T]) Contains(elem T) bool {
-	_, ok := s.data[elem]
-	return ok
-}
+	// IsEmpty returns true if Set is an empty set.
+	IsEmpty() bool
 
-// Add adds elem to the Set.
-// Returns true if it was added, false if it already was in the set.
-func (s Set[T]) Add(elem T) bool {
-	if _, ok := s.data[elem]; !ok {
-		s.data[elem] = struct{}{}
-		return true
-	}
-	return false
-}
+	// Cardinality returns the number of elements in the Set.
+	Cardinality() int
 
-// Remove removes elem from the Set.
-// Returns true if it was in the set, false otherwise.
-func (s Set[T]) Remove(elem T) bool {
-	if _, ok := s.data[elem]; ok {
-		delete(s.data, elem)
-		return true
-	}
-	return false
-}
+	// Union returns a new Set which is the union of the Set and s2.
+	Union(s2 Set[T]) Set[T]
 
-// IsEmpty returns true if Set is an empty set.
-func (s Set[T]) IsEmpty() bool {
-	return len(s.data) == 0
-}
+	// Intersection returns a new Set which is the intersection of the Set and s2.
+	Intersection(s2 Set[T]) Set[T]
 
-// Cardinality returns the number of elements in the Set.
-func (s Set[T]) Cardinality() int {
-	return len(s.data)
-}
+	// Difference returns a new Set which is the set difference of the Set and s2.
+	Difference(s2 Set[T]) Set[T]
 
-// Union returns a new Set which is the union of s and s2.
-func (s Set[T]) Union(s2 Set[T]) Set[T] {
-	m := make(map[T]struct{})
-	for elem := range s.data {
-		m[elem] = struct{}{}
-	}
-	for elem := range s2.data {
-		m[elem] = struct{}{}
-	}
-	return Set[T]{data: m}
-}
+	// SymDifference returns a new Set which is the symmetric difference of the Set and s2.
+	SymDifference(s2 Set[T]) Set[T]
 
-// Intersection returns a new Set which is the intersection of s and s2.
-func (s Set[T]) Intersection(s2 Set[T]) Set[T] {
-	m := make(map[T]struct{})
-	for elem := range s.data {
-		if _, ok := s2.data[elem]; ok {
-			m[elem] = struct{}{}
-		}
-	}
-	return Set[T]{data: m}
-}
+	// IsSubset returns true if the Set is a subset of s2.
+	IsSubset(s2 Set[T]) bool
 
-// Difference returns a new Set which is the set difference of s and s2.
-func (s Set[T]) Difference(s2 Set[T]) Set[T] {
-	m := make(map[T]struct{})
-	for elem := range s.data {
-		if _, ok := s2.data[elem]; !ok {
-			m[elem] = struct{}{}
-		}
-	}
-	return Set[T]{data: m}
-}
+	// IsProperSubset returns true if the Set is a proper subset of s2.
+	IsProperSubset(s2 Set[T]) bool
 
-// SymDifference returns a new Set which is the symmetric difference of s and s2.
-func (s Set[T]) SymDifference(s2 Set[T]) Set[T] {
-	m := make(map[T]struct{})
-	for elem := range s.data {
-		if _, ok := s2.data[elem]; !ok {
-			m[elem] = struct{}{}
-		}
-	}
-	for elem := range s2.data {
-		if _, ok := s.data[elem]; !ok {
-			m[elem] = struct{}{}
-		}
-	}
-	return Set[T]{data: m}
-}
+	// Equal returns true if the Set and s2 contain the same elements.
+	Equal(s2 Set[T]) bool
 
-// IsSubset returns true if s is a subset of s2.
-func (s Set[T]) IsSubset(s2 Set[T]) bool {
-	for elem := range s.data {
-		if _, ok := s2.data[elem]; !ok {
-			return false
-		}
-	}
-	return true
-}
+	// Clone clones the Set.
+	Clone() Set[T]
 
-// IsProperSubset returns true if s is a proper subset of s2.
-func (s Set[T]) IsProperSubset(s2 Set[T]) bool {
-	if len(s.data) >= len(s2.data) {
-		return false
-	}
-	for elem := range s.data {
-		if _, ok := s2.data[elem]; !ok {
-			return false
-		}
-	}
-	return true
-}
+	// Elements returns a slice with all elements of the Set.
+	Elements() []T
 
-// Equal returns true if s and s2 contain the same elements.
-func (s Set[T]) Equal(s2 Set[T]) bool {
-	if len(s.data) != len(s2.data) {
-		return false
-	}
-	return s.IsSubset(s2)
-}
-
-// Clone clones the Set.
-func (s Set[T]) Clone() Set[T] {
-	m := make(map[T]struct{})
-	for elem := range s.data {
-		m[elem] = struct{}{}
-	}
-	return Set[T]{data: m}
-}
-
-// Elements returns a slice with all elements of the Set.
-func (s Set[T]) Elements() []T {
-	result := make([]T, 0, len(s.data))
-	for elem := range s.data {
-		result = append(result, elem)
-	}
-	return result
-}
-
-// String returns a string representation of the Set.
-func (s Set[T]) String() string {
-	sl := make([]string, len(s.data))
-	for i, elem := range s.Elements() {
-		sl[i] = fmt.Sprintf("%v", elem)
-	}
-	return fmt.Sprintf("Set{%s}", strings.Join(sl, ", "))
+	// String returns a string representation of the Set.
+	String() string
 }

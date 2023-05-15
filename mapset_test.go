@@ -106,8 +106,8 @@ func TestUnion(t *testing.T) {
 		{NewMapSet(1, 2), NewMapSet(1, 2), map[int]struct{}{1: {}, 2: {}}},
 	}
 	for i, test := range tests {
-		got1 := test.s1.Union(test.s2).data
-		got2 := test.s2.Union(test.s1).data
+		got1 := test.s1.Union(test.s2).(*MapSet[int]).data
+		got2 := test.s2.Union(test.s1).(*MapSet[int]).data
 		if !(reflect.DeepEqual(got1, test.want) && reflect.DeepEqual(got2, test.want)) {
 			t.Errorf("%d: got %#v and %#v, want %#v", i, got1, got2, test.want)
 		}
@@ -126,8 +126,8 @@ func TestIntersection(t *testing.T) {
 		{NewMapSet(1, 2), NewMapSet(1, 2), map[int]struct{}{1: {}, 2: {}}},
 	}
 	for i, test := range tests {
-		got1 := test.s1.Intersection(test.s2).data
-		got2 := test.s2.Intersection(test.s1).data
+		got1 := test.s1.Intersection(test.s2).(*MapSet[int]).data
+		got2 := test.s2.Intersection(test.s1).(*MapSet[int]).data
 		if !(reflect.DeepEqual(got1, test.want) && reflect.DeepEqual(got2, test.want)) {
 			t.Errorf("%d: got %#v and %#v, want %#v", i, got1, got2, test.want)
 		}
@@ -146,7 +146,7 @@ func TestDifference(t *testing.T) {
 		{NewMapSet(1, 2), NewMapSet(1, 2), map[int]struct{}{}},
 	}
 	for i, test := range tests {
-		if got := test.s1.Difference(test.s2); !reflect.DeepEqual(got.data, test.want) {
+		if got := test.s1.Difference(test.s2).(*MapSet[int]); !reflect.DeepEqual(got.data, test.want) {
 			t.Errorf("%d: got %#v, want %#v", i, got, test.want)
 		}
 	}
@@ -164,8 +164,8 @@ func TestSymDifference(t *testing.T) {
 		{NewMapSet(1, 2), NewMapSet(1, 2), map[int]struct{}{}},
 	}
 	for i, test := range tests {
-		got1 := test.s1.SymDifference(test.s2).data
-		got2 := test.s2.SymDifference(test.s1).data
+		got1 := test.s1.SymDifference(test.s2).(*MapSet[int]).data
+		got2 := test.s2.SymDifference(test.s1).(*MapSet[int]).data
 		if !(reflect.DeepEqual(got1, test.want) && reflect.DeepEqual(got2, test.want)) {
 			t.Errorf("%d: got %#v and %#v, want %#v", i, got1, got2, test.want)
 		}
@@ -235,7 +235,7 @@ func TestEqual(t *testing.T) {
 
 func TestClone(t *testing.T) {
 	s := NewMapSet(1, 2, 3)
-	clone := s.Clone()
+	clone := s.Clone().(*MapSet[int])
 	if !reflect.DeepEqual(s.data, clone.data) {
 		t.Errorf("got %v, want %v", clone.data, s.data)
 	}
@@ -261,8 +261,8 @@ func TestElements(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	s := NewMapSet(1)
-	want := "Set{1}"
+	s := NewMapSet(1, 2, 3)
+	want := "Set{1, 2, 3}"
 	if s.String() != want {
 		t.Errorf("got %q, want %q", s.String(), want)
 	}
