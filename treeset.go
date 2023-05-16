@@ -17,7 +17,7 @@ type TreeSet[T any] struct {
 
 // NewTreeSet returns a new TreeSet with the given elements.
 func NewTreeSet[T constraints.Ordered](elems ...T) *TreeSet[T] {
-	return (*TreeSet[T])(NewTreeSetFunc(avltree.CmpOrd[T], elems...))
+	return NewTreeSetFunc(avltree.CmpOrd[T], elems...)
 }
 
 // NewTreeSetFunc returns a new TreeSet with the given elements. Function cmp is used
