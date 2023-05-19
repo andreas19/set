@@ -151,7 +151,7 @@ func (s *MapSet[T]) Equal(s2 Set[T]) bool {
 
 // Clone clones the Set.
 func (s *MapSet[T]) Clone() Set[T] {
-	m := make(map[T]struct{})
+	m := make(map[T]struct{}, len(s.data))
 	for elem := range s.data {
 		m[elem] = struct{}{}
 	}
