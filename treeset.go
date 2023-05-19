@@ -151,11 +151,7 @@ func (s *TreeSet[T]) Equal(s2 Set[T]) bool {
 
 // Clone clones the Set.
 func (s *TreeSet[T]) Clone() Set[T] {
-	tree := avltree.New(s.cmp, true)
-	s.tree.Each(func(elem T) {
-		tree.Add(elem)
-	})
-	return &TreeSet[T]{tree: tree, cmp: s.cmp}
+	return &TreeSet[T]{tree: s.tree.Clone(), cmp: s.cmp}
 }
 
 // Elements returns a slice with all elements of the Set.
