@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"cmp"
+
 	"github.com/andreas19/avltree"
-	"golang.org/x/exp/constraints"
 )
 
 // TreeSet type that implements the [Set] interface.
@@ -16,7 +17,7 @@ type TreeSet[T any] struct {
 }
 
 // NewTreeSet returns a new TreeSet with the given elements.
-func NewTreeSet[T constraints.Ordered](elems ...T) *TreeSet[T] {
+func NewTreeSet[T cmp.Ordered](elems ...T) *TreeSet[T] {
 	return NewTreeSetFunc(avltree.CmpOrd[T], elems...)
 }
 
