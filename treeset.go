@@ -42,6 +42,13 @@ func (s *TreeSet[T]) Add(elem T) bool {
 	return s.tree.Add(elem)
 }
 
+// Update updates the Set with elems.
+func (s *TreeSet[T]) Update(elems ...T) {
+	for _, elem := range elems {
+		s.Add(elem)
+	}
+}
+
 // Remove removes an element from the Set.
 // Returns true if it was in the set, false otherwise.
 func (s *TreeSet[T]) Remove(elem T) bool {

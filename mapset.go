@@ -36,6 +36,13 @@ func (s *MapSet[T]) Add(elem T) bool {
 	return false
 }
 
+// Update updates the Set with elems.
+func (s *MapSet[T]) Update(elems ...T) {
+	for _, elem := range elems {
+		s.Add(elem)
+	}
+}
+
 // Remove removes an element from the Set.
 // Returns true if it was in the set, false otherwise.
 func (s *MapSet[T]) Remove(elem T) bool {

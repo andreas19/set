@@ -9,6 +9,9 @@ type Set[T any] interface {
 	// Returns true if it was added, false if it already was in the set.
 	Add(elem T) bool
 
+	// Update updates the Set with elems.
+	Update(elems ...T)
+
 	// Remove removes an element from the Set.
 	// Returns true if it was in the set, false otherwise.
 	Remove(elem T) bool
