@@ -2,6 +2,7 @@ package set
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 )
 
@@ -172,6 +173,17 @@ func (s *MapSet[T]) Elements() []T {
 		result = append(result, elem)
 	}
 	return result
+}
+
+// Iter returns an iterator over all elements of the Set.
+func (s *MapSet[T]) Iter() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for elem := range s.data {
+			if !yield(elem) {
+				return
+			}
+		}
+	}
 }
 
 // String returns a string representation of the Set.

@@ -1,6 +1,8 @@
 // Package set implements [Set] types for Go.
 package set
 
+import "iter"
+
 type Set[T any] interface {
 	// Contains reports whether the element is in the Set.
 	Contains(elem T) bool
@@ -48,6 +50,9 @@ type Set[T any] interface {
 
 	// Elements returns a slice with all elements of the Set.
 	Elements() []T
+
+	// Iter returns an iterator over all elements of the Set.
+	Iter() iter.Seq[T]
 
 	// String returns a string representation of the Set.
 	String() string

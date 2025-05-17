@@ -2,6 +2,7 @@ package set
 
 import (
 	"fmt"
+	"iter"
 	"strings"
 
 	"cmp"
@@ -165,6 +166,11 @@ func (s *TreeSet[T]) Clone() Set[T] {
 // Elements returns a slice with all elements of the Set.
 func (s *TreeSet[T]) Elements() []T {
 	return s.tree.Slice()
+}
+
+// Iter returns an iterator over all elements of the Set.
+func (s *TreeSet[T]) Iter() iter.Seq[T] {
+	return s.tree.Iter()
 }
 
 // String returns a string representation of the Set.
